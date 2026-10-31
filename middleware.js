@@ -285,8 +285,10 @@ function generateAuthPage(isChinese = true) {
                 const data = await response.json();
 
                 if (data.success) {
-                    // 认证成功，刷新页面
-                    window.location.reload();
+                    // 认证成功，立即平滑替换跳转，避免 reload 触发全量重新握手
+                    loading.textContent = isChinese ? '验证成功，正在进入...' : 'Success! Entering...';
+                    window.location.replace('/');
+                    return;
                 } else {
                     // 认证失败
                     console.log('认证失败', { message: data.message });
@@ -322,6 +324,30 @@ function generateAuthPage(isChinese = true) {
                 errorMessage.style.display = 'none';
             }
         });
+
+        // 预加载主应用模块，在用户输入密码期间提前完成静态资源下载
+        try {
+            fetch('/index.html')
+                .then(r => r.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const links = doc.querySelectorAll('link[rel="modulepreload"], link[rel="stylesheet"], script[type="module"]');
+                    links.forEach(el => {
+                        const link = document.createElement('link');
+                        if (el.tagName === 'LINK' && el.rel === 'stylesheet') {
+                            link.rel = 'preload';
+                            link.as = 'style';
+                            link.href = el.href;
+                        } else {
+                            link.rel = 'modulepreload';
+                            link.href = el.src || el.href;
+                        }
+                        document.head.appendChild(link);
+                    });
+                })
+                .catch(() => {});
+        } catch (_) {}
     </script>
 </body>
 </html>`;

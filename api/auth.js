@@ -29,7 +29,7 @@ export default function handler(req, res) {
         // 设置Cookie以记住用户身份验证状态
         const maxAge = 60 * 60 * 24 * 7; // 7天
         res.setHeader('Set-Cookie', [
-          `vercel_access_token=${accessPassword}; HttpOnly; Path=/; Max-Age=${maxAge}; SameSite=Strict${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`
+          `vercel_access_token=${accessPassword}; HttpOnly; Path=/; Max-Age=${maxAge}; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`
         ]);
         
         return res.status(200).json({ 
@@ -51,7 +51,7 @@ export default function handler(req, res) {
     if (action === 'logout') {
       // 清除Cookie
       res.setHeader('Set-Cookie', [
-        'vercel_access_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict'
+        'vercel_access_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax'
       ]);
       
       return res.status(200).json({ 
